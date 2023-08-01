@@ -53,6 +53,7 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody rb;
 
     public MovemenState state;
+
     public enum MovemenState {
         walking,
         sprinting,
@@ -182,19 +183,13 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // // limiit speed on graund or in air
+        // limiit speed on graund or in air
         else {
 
             Vector3 flatVel  = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
             //limit velocity if needed
-            if(flatVel.magnitude > moveSpeed){
-                Vector3 limitedVel =  flatVel.normalized * moveSpeed;
-                rb.velocity = new Vector3(limitedVel.x,rb.velocity.y,limitedVel.z);
-            }
-
-            //limit velocity if needed
-            if(flatVel.magnitude > moveSpeed){
+            if(flatVel.magnitude > moveSpeed) {
                 Vector3 limitedVel =  flatVel.normalized * moveSpeed;
                 rb.velocity = new Vector3(limitedVel.x,rb.velocity.y,limitedVel.z);
             }
@@ -208,7 +203,14 @@ public class PlayerMovement : MonoBehaviour
         //reset velosity
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+
+        if(state == MovemenState.crouching) {
+            rb.AddForce(transform.up * jumpForce + orientation.forward * 100f, ForceMode.Impulse);
+
+        }
+        else {
+            rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        }
     }
 
     private void ResetJump() {
