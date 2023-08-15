@@ -5731,6 +5731,7 @@ MonoBehaviour:
   useGravity: 0
   gravityCounterForce: 70
   orientation: {fileID: 40919615}
+  cam: {fileID: 963194229}
 --- !u!43 &800141064
 Mesh:
   m_ObjectHideFlags: 0
@@ -6256,6 +6257,7 @@ MonoBehaviour:
   sensX: 400
   sensY: 400
   orientation: {fileID: 40919615}
+  camHolder: {fileID: 1114040581}
 --- !u!1 &1071093201
 GameObject:
   m_ObjectHideFlags: 0
