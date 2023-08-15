@@ -9,6 +9,12 @@ public class PlayerMovement : MonoBehaviour
     private float moveSpeed;
     public float walkSpeed;
     public float sprintSpeed;
+    public float wallrunSpeed;
+    public float slideSpeed;
+
+    private float desiredMoveSpeed;
+    private float lastDesiredMoveSpeed;
+
 
     public float groundDrag;
     public float jumpForce;
@@ -30,7 +36,7 @@ public class PlayerMovement : MonoBehaviour
     [Header ("Ground Check")]
     public float playerHeight;
     public LayerMask whatIsGround;
-    bool grounded;
+    public bool grounded;
 
     [Header ("Slope Handling")]
     public float maxSlopeAngle;
@@ -53,12 +59,18 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody rb;
 
     public MovemenState state;
+    
     public enum MovemenState {
         walking,
         sprinting,
         crouching,
+        wallrunning,
+        sliding,
         air
     }
+
+    public bool sliding;
+    public bool wallrunning;
 
     private void Start() {
         rb = GetComponent<Rigidbody>();
@@ -120,28 +132,59 @@ public class PlayerMovement : MonoBehaviour
 
     private void StateHandler(){
 
+      //  Mode - WallRunning
+        if(wallrunning) {
+            state = MovemenState.wallrunning;
+            
+            moveSpeed =  wallrunSpeed;
+        //  desiredMoveSpeed =  wallrunSpeed; 
+        }
+
+        // Mode - Sliding
+        if(sliding) {
+            state = MovemenState.sliding;
+
+            if(OnSlope() && rb.velocity.y < 0.1f) {
+                desiredMoveSpeed = moveSpeed;
+            }
+            else {
+                desiredMoveSpeed =  sprintSpeed;
+            }
+        }
+
         // Mode - crouching
-        if(grounded && Input.GetKey(crouchKey)) {
+        else if(grounded && Input.GetKey(crouchKey)) {
             state = MovemenState.crouching;
-            moveSpeed = croucSpeed;
+            desiredMoveSpeed = croucSpeed;
         }
 
         // Mode - Sprinting
         else if(grounded && Input.GetKey(sprintKey)) {
             state = MovemenState.sprinting;
-            moveSpeed =  sprintSpeed;
+            desiredMoveSpeed =  sprintSpeed;
         }
 
         // Mode - Walking;
         else if (grounded) {
             state = MovemenState.walking;
-            moveSpeed =  walkSpeed;
+            desiredMoveSpeed =  walkSpeed;
         }
 
         // Mode - air
-        else {
+        if (!grounded){
             state = MovemenState.air;
         }
+
+        // check if desiredMoveSpeed has changer drastically
+        // if(Mathf.Ads(desiredMoveSpeed - lastDesiredMoveSpeed) > 4f && moveSpeed != 0f) {
+        //     StopAllCoroutines();
+        //     StartCorontines(SmoothlyLerpMoveSpeed());
+        // }
+         else {
+            moveSpeed = desiredMoveSpeed;
+        }
+
+        lastDesiredMoveSpeed = desiredMoveSpeed;
     }
 
 
@@ -152,7 +195,7 @@ public class PlayerMovement : MonoBehaviour
 
         // on slope
         if(OnSlope() && !exitingSlope) {
-            rb.AddForce(GetSlopeMoveDirection() * moveSpeed * 20f, ForceMode.Force);
+            rb.AddForce(GetSlopeMoveDirection(moveDirection) * moveSpeed * 20f, ForceMode.Force);
             
             if(rb.velocity.y > 0) {
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
@@ -163,13 +206,16 @@ public class PlayerMovement : MonoBehaviour
         if(grounded) {
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
+
         // in air    
         else if (!grounded){
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);    
         }
 
         // turn gravity off  while on slope
-        rb.useGravity = !OnSlope();
+        if (!wallrunning) {
+            rb.useGravity = !OnSlope();
+       }
     }   
 
     private void SpeedControl() {
@@ -212,15 +258,16 @@ public class PlayerMovement : MonoBehaviour
         exitingSlope = false;
     }
 
-    private bool OnSlope() {
+    public bool OnSlope() {
         if(Physics.Raycast(transform.position,Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f)) {
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+        
             return angle < maxSlopeAngle && angle != 0;
         }
         return false;
     }
 
-    private Vector3 GetSlopeMoveDirection() {
-        return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
+    public Vector3 GetSlopeMoveDirection(Vector3 direction) {
+        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
     }
 }
