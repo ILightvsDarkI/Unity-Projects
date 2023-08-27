@@ -6,6 +6,7 @@ using TMPro;
 public class PlayerMovement : MonoBehaviour
 {
     [Header ("Movement")]
+
     private float moveSpeed;
     public float walkSpeed;
     public float sprintSpeed;
@@ -23,25 +24,32 @@ public class PlayerMovement : MonoBehaviour
     bool readyToJump = true;
 
     [Header("Crouching")]
+
     public float croucSpeed;
     public float crouchYcale;
     float startYScale;
 
 
     [Header ("Keybinds")]
+
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode sprintKey = KeyCode.LeftShift;
     public KeyCode crouchKey = KeyCode.Mouse3;
 
     [Header ("Ground Check")]
+
     public float playerHeight;
     public LayerMask whatIsGround;
     public bool grounded;
 
     [Header ("Slope Handling")]
+    
+    public float groundRayLen = 0.3f;
+    public float onSlopeRayLen = 0.3f;
     public float maxSlopeAngle;
     public RaycastHit slopeHit;
     private bool exitingSlope;
+    public bool onSlope;
 
 
     public TMP_Text speedText; 
@@ -82,17 +90,22 @@ public class PlayerMovement : MonoBehaviour
     private void Update() {
 
         //ground check
-        grounded = Physics.Raycast(transform.position,Vector3.down,playerHeight * 0.5f + 0.2f, whatIsGround);
+        float rayLen = playerHeight * 0.5f + groundRayLen;
+        grounded = Physics.Raycast(transform.position,Vector3.down, rayLen, whatIsGround);
+
+        
+        Debug.DrawRay(transform.position, Vector3.down * rayLen, Color.blue, 2);
+
 
         MyInput();
         SpeedControl();
         StateHandler();
 
         //handle drag
-        if(grounded){
-          rb.drag = groundDrag;
+        if(grounded) {
+            rb.drag = groundDrag;
         }
-        else{
+        else {
             rb.drag = 0;
         }
 
@@ -101,6 +114,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void FixedUpdate() {
+        onSlope = OnSlope();
         MovePlayer();
     }
 
@@ -197,9 +211,9 @@ public class PlayerMovement : MonoBehaviour
         if(OnSlope() && !exitingSlope) {
             rb.AddForce(GetSlopeMoveDirection(moveDirection) * moveSpeed * 20f, ForceMode.Force);
             
-            if(rb.velocity.y > 0) {
-                rb.AddForce(Vector3.down * 80f, ForceMode.Force);
-            }
+            // if(rb.velocity.y >= 0) {
+            //     rb.AddForce(Vector3.down * 800f, ForceMode.Force);
+            // }
         }
 
         // on ground
@@ -214,13 +228,13 @@ public class PlayerMovement : MonoBehaviour
 
         // turn gravity off  while on slope
         if (!wallrunning) {
-            rb.useGravity = !OnSlope();
-       }
+            rb.useGravity = !grounded;
+        }
     }   
 
     private void SpeedControl() {
 
-        // limit speed on slope
+        // limit speed on slope (1)
         if(OnSlope() && !exitingSlope) {
             if(rb.velocity.magnitude > moveSpeed)
             {
@@ -228,7 +242,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // // limiit speed on graund or in air
+        // limiit speed on graund or in air
         else {
 
             Vector3 flatVel  = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
@@ -259,10 +273,13 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public bool OnSlope() {
-        if(Physics.Raycast(transform.position,Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f)) {
+        float rayLen = playerHeight * 0.5f + onSlopeRayLen;
+        Debug.DrawRay(transform.position, Vector3.down * rayLen, Color.red, 2);
+
+        if(Physics.Raycast(transform.position,Vector3.down, out slopeHit, rayLen)) {
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
         
-            return angle < maxSlopeAngle && angle != 0;
+            return angle <= maxSlopeAngle && angle != 0;
         }
         return false;
     }

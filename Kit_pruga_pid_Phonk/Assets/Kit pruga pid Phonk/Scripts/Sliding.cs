@@ -66,12 +66,12 @@ public class Sliding : MonoBehaviour
     }
 
     private void SlidingMovement() {
-        Vector3 inputDirection = orientation.forward *  verticalInput;
+        Vector3 inputDirection = orientation.forward * verticalInput;
+        Debug.DrawRay(transform.position, inputDirection, Color.green,2);
 
         // sliding normal
         if(!pm.OnSlope() || rb.velocity.y > -0.1f) {
             rb.AddForce(inputDirection.normalized * slideForce, ForceMode.Force);
-
             slideTimer -= Time.deltaTime;
         }
 
