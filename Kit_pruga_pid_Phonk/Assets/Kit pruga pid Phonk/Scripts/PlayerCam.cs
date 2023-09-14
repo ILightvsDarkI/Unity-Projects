@@ -17,7 +17,8 @@ float yRotation;
 
     // Start is called before the first frame update
     void Start()
-    {
+    {   
+        
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;        
     }
@@ -34,7 +35,7 @@ float yRotation;
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation,-90f,90);
         
-        // rotate c@m and orientatio 
+        // rotate c@m and orientation 
         camHolder.rotation = Quaternion.Euler(xRotation,yRotation,0); 
         orientation.rotation = Quaternion.Euler(0,yRotation,0);  
     }
@@ -44,6 +45,6 @@ float yRotation;
     }
 
     public void DoTilt (float zTilt) {
-        transform.DOLocalRotate(new Vector3(0, 0, zTilt), 0.25f);        
+        transform.DOLocalRotate(new Vector3(0, 0, zTilt), 0.25f);
     }
 }

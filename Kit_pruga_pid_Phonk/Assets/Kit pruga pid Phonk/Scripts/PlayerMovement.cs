@@ -59,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
 
     public Transform orientation;
 
+    float scrollValue;
     float horizontalInput;
     float verticalIInput;
 
@@ -120,6 +121,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void MyInput() { 
 
+        scrollValue = Input.GetAxis("Mouse ScrollWheel");
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalIInput = Input.GetAxisRaw("Vertical");
 
@@ -274,7 +276,7 @@ public class PlayerMovement : MonoBehaviour
 
     public bool OnSlope() {
         float rayLen = playerHeight * 0.5f + onSlopeRayLen;
-        Debug.DrawRay(transform.position, Vector3.down * rayLen, Color.red, 2);
+     //   Debug.DrawRay(transform.position, Vector3.down * rayLen, Color.red, 2);
 
         if(Physics.Raycast(transform.position,Vector3.down, out slopeHit, rayLen)) {
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);

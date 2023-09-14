@@ -12,7 +12,8 @@ public class WallRunning : MonoBehaviour
     public float wallJumpSideForce;
     public float wallClimbSpeed;
     public float maxWallRunTime;
-    private float wallRunTimer;
+    public float wallRunTimer;
+    public float wallJumpForce;
 
     [Header("Input")]
     public KeyCode jumpKey = KeyCode.Space;
@@ -36,6 +37,7 @@ public class WallRunning : MonoBehaviour
     private bool exitingWall;
     public float exitWallTime;
     private float exitWallTimer;
+    public float wallJumpAngle;
 
     [Header("Gravity")]
     public bool useGravity;
@@ -43,6 +45,7 @@ public class WallRunning : MonoBehaviour
 
 
     [Header("References")]
+    private Vector3 wallRunDirection;
     public Transform orientation;
     public PlayerCam cam;
     private PlayerMovement pm;
@@ -151,6 +154,9 @@ public class WallRunning : MonoBehaviour
             cam.DoTilt(5f);
         }
 
+        // Встановлюємо напрямок руху по стіні на основі напрямку руху гравця
+         wallRunDirection = wallRight ? rightWallhit.normal : -leftWallhit.normal;
+
     }
 
     private void WallRunningMovement()
@@ -210,6 +216,11 @@ public class WallRunning : MonoBehaviour
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         rb.AddForce(forceToApply, ForceMode.Impulse);
         
+        // Визначаємо напрямок стрибка від стіни для стрибка
+        Vector3 wallJumpDirection = Quaternion.AngleAxis(wallJumpAngle, transform.forward) * (wallRight ? rightWallhit.normal : -leftWallhit.normal) * wallJumpForce;
+        Debug.DrawRay(transform.position,wallJumpDirection * 3f,Color.blue, 3f);
+        // Встановлюємо швидкість гравця на напрямок стрибка
+        rb.velocity = wallJumpDirection;
     }
 }
 
